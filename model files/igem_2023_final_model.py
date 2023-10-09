@@ -11,16 +11,16 @@ Original file is located at
 We will require a Conda environment in order to import the `ViennaRNA` library created by [Lorenz et al. (2011)](https://doi.org/10.1186/1748-7188-6-26).
 """
 
-!pip install -q condacolab
-import condacolab
-condacolab.install()
+# !pip install -q condacolab
+# import condacolab
+# condacolab.install()
 
 """With the Conda environment now installed, we can install the `ViennaRNA` library.
 
 **NOTE**: Colab will crash after this install. Run the subsequent cells manually by clicking an appropriate option under the **Runtime** menu.
 """
 
-!conda install -c bioconda viennarna
+# !conda install -c bioconda viennarna
 
 """# Imports"""
 

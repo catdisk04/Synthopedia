@@ -12,7 +12,8 @@ def optimise(request):
         if form.is_valid():
             input = form.cleaned_data
             if engine.is_valid_seq(input["rbs_seq"]):
-                result = engine.optimise(input["rbs_seq"], input["target_rate"], input["temp"], input["organism"], input["cds_seq"])
+                result = engine.optimise(input["rbs_seq"], input["target_rate"], input["temp"], input["gram"], input["cds_seq"], input["rrna"])
+
                 return render(request, "optimise_result.html", {"form": form, "result":result})
             else:
                 return render(request,"optimise.html", {"form": form, "error":"Invalid sequence"})
@@ -29,7 +30,7 @@ def predict(request):
         if form.is_valid():
             input = form.cleaned_data
             if engine.is_valid_seq(input["rbs_seq"]):
-                result = engine.predict(input["rbs_seq"],  input["temp"], input["organism"], input["cds_seq"])
+                result = engine.predict(input["rbs_seq"],  input["temp"], input["gram"], input["cds_seq"])
                 return render(request, "predict_result.html", {"form": form, "result":result})
             else:
                 return render(request,"predict.html", {"form": form, "error":"Invalid sequence"})

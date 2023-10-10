@@ -1,18 +1,20 @@
-import Optimise, Predict
+from optimise import *
+from predict import *
+# organism_choices = ["E.coli", "L.lactis"]
 
-organism_choices = ["E.coli", "L.lactis"]
-
-# org_choices = []
+# org_choices = []s
 # for i in organism_choices.keys:
 #     org_choices.append((i, i))
 
 def optimise(rbs_seq, target, temp, gram, cds_seq, rrna):
-    optimized_rbs, optimized_rate = Optimise.optimize_rbs(target, gram, temp, rrna, rbs_seq, cds_seq)
+    optimized_rbs, optimized_rate = optimize_rbs(float(target), gram, float(temp), rrna, rbs_seq, cds_seq)
     return {"result_seq": str(optimized_rbs), "achieved_rate": str(optimized_rate)}
+    # return {"result_seq": "AAAAAA", "achieved_rate": "10"}
 
-def predict(rbs_seq,temp, gram, cds_seq):
-    result = Predict.find_tir(gram, temp, rRNA, rbs, cds)
+def predict(rbs_seq,temp, gram, cds_seq, rrna):
+    result = find_tir(gram, float(temp), rrna, rbs_seq, cds_seq)
     return {"result_rate": result}
+    # return {"result_rate": "10"}
 
 def is_valid_seq(rbs_seq):
     return True

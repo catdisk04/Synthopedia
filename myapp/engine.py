@@ -14,7 +14,7 @@ def optimise(rbs_seq, target, temp, gram, cds_seq, rrna, protect):
 def predict(rbs_seq,temp, gram, cds_seq, rrna):
     # print("NEW INPUT")
     # print("rbs_seq, temp, gram, cds_seq, rrna,")
-    print(rbs_seq, temp, gram, cds_seq, rrna, sep="\n")
+    # print(rbs_seq, temp, gram, cds_seq, rrna, sep="\n")
     result = find_tir(gram, float(temp), rrna, rbs_seq, cds_seq)
     return {"result_rate": result}
     # return {"result_rate": "10"}

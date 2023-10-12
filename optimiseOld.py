@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[6]:
 
 
-#get_ipython().system('pip install -q condacolab')
-#import condacolab
-#condacolab.install()
+# get_ipython().system('pip install -q condacolab')
+# import condacolab
+# condacolab.install()
 
 
 # In[1]:
@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import joblib
+import random
 
 
 # In[3]:
@@ -177,7 +178,7 @@ def find_codon_score(cds):
 model = joblib.load("iGEM IITM 2023 - Final Model.joblib")
 
 
-# In[15]:
+# In[11]:
 
 
 def find_tir(gram_stain,temperature,rRNA,RBS,CDS):
@@ -206,13 +207,121 @@ def find_tir(gram_stain,temperature,rRNA,RBS,CDS):
   return tir
 
 
-# In[16]:
+# In[25]:
 
-if __name__ == "__main__":
-  gram = "Negative"
-  temp = 37
+
+# Functions to mutate the RBS sequence
+
+def mutate_base(base, mutation_rate):
+    bases = "ACGU"
+    return random.choice(bases) if random.random() < mutation_rate else base
+
+def mutate_rbs(rbs, mutation_rate = 0.1, positions_to_protect = []):
+    bases = "ACGU"
+    mutated_rbs = []
+    for idx, base in enumerate(rbs):
+        if idx in positions_to_protect:
+            mutated_rbs.append(base)    # Keep the base unchanged for the Shine-Dalgarno Sequence
+        else:
+            mutated_rbs.append(mutate_base(base, mutation_rate)) # Mutate the rest
+
+    return ''.join(mutated_rbs)
+
+def single_point_crossover(mutated_rbs_list, i1, i2, i3, i4):
+    # Perform single-point crossover
+    rbs1 = mutated_rbs_list[i1]
+    rbs2 = mutated_rbs_list[i2]
+    rbs3 = mutated_rbs_list[i3]
+    rbs4 = mutated_rbs_list[i4]
+
+    crossover_point = random.randint(1, len(rbs1) - 1)
+    # Exchanging the RBS at a random crossover point
+    child1 = rbs1[:crossover_point] + rbs2[crossover_point:]
+    child2 = rbs2[:crossover_point] + rbs1[crossover_point:]
+    child3 = rbs3[:crossover_point] + rbs4[crossover_point:]
+    child4 = rbs4[:crossover_point] + rbs3[crossover_point:]
+    return child1, child2, child3, child4
+
+# RBS optimization
+def optimize_rbs(desired_initiation_rate, gram_stain, temperature, rRNA, RBS, CDS, generations=100, population_size=50, mutation_rate=0.1):
+    rbs_sequence = RBS.upper().replace("T","U")
+    if rbs_sequence == "":
+      rbs_sequence = "".join(random.choices(["A","C","G","U"],k=27))
+    CDS = CDS.upper().replace("T","U")
+    consecutive_same_best_rate = 0
+    best_RBS_sequences = []
+    best_RBS_rates = []
+
+    for generation in range(generations):
+        # Calculate initiation rate for the current RBS sequence
+        current_rate = find_tir(gram_stain, temperature, rRNA, rbs_sequence, CDS)
+        best_RBS_sequences.append(rbs_sequence)
+        best_RBS_rates.append(current_rate)
+        # print(f"Generation {generation+1}, Current RBS: {rbs_sequence}, Initiation Rate: {current_rate}")
+
+        if abs(current_rate - desired_initiation_rate) < 1e-4: # Choosing the accuracy we require
+            # print("Optimization successful!")
+            break
+        # Generate a new mutated RBS sequence
+        best_rate = 500 # Setting an arbitrary high best rate
+        rbs_sequence_1 = rbs_sequence
+        mutated_rbs_list = [] # Creating a list for the mutated RBS
+
+        for i in range(population_size):
+            new_rbs = mutate_rbs(rbs_sequence, mutation_rate)
+            mutated_rbs_list.append(new_rbs)
+
+        # Perform crossover and add children to the population
+        for _ in range(population_size // 2):
+            i1, i2, i3, i4 = random.sample(range(population_size), 4)  # Choose 4 distinct random parents
+            child1, child2, child3, child4 = single_point_crossover(mutated_rbs_list, i1, i2, i3, i4)
+            mutated_rbs_list.extend([child1, child2, child3, child4])
+
+        new_rates = []
+        for i in range(len(mutated_rbs_list)):
+            new_rbs = mutated_rbs_list[i]
+            new_rate = find_tir(gram_stain, temperature, rRNA, new_rbs, CDS)
+            new_rates.append(new_rate) # List for the rates of the mutated sequences
+
+        # Replace the current RBS sequence with the mutated one if it leads to a better initiation rate
+        for i in range(len(mutated_rbs_list)):
+            if abs(new_rates[i] - desired_initiation_rate) < abs(current_rate - desired_initiation_rate):
+                if abs(new_rates[i] - desired_initiation_rate) < abs(best_rate - desired_initiation_rate):
+                    best_rate = new_rates[i]
+                    rbs_sequence_1 = mutated_rbs_list[i]
+
+        if best_rate == 500: # If the same rate is repeated multiple times, the best rate is not updated
+            consecutive_same_best_rate += 1
+        else:
+            consecutive_same_best_rate = 0
+
+        if consecutive_same_best_rate == 4:
+            if abs(current_rate - desired_initiation_rate) > 0.01:
+                # print("Retrying for a better result")
+                rbs_sequence_1 = RBS
+            else:
+                # print("Optimization successful!")
+                break
+
+        rbs_sequence = rbs_sequence_1  # Update the current RBS sequence
+
+    deviations = [abs(rate-desired_initiation_rate) for rate in best_RBS_rates]
+    best_RBS_rate = best_RBS_rates[deviations.index(min(deviations))]
+    best_RBS_sequence = best_RBS_sequences[deviations.index(min(deviations))]
+
+    return best_RBS_sequence, best_RBS_rate
+
+
+# In[26]:
+
+if __name__== "__main__":
+  gram_stain = "Negative"
+  temperature = 37
   rRNA = "CCUCCUUA"
-  rbs = "UUCUAGAGUGCAUAAGGAGUGCUCG"
-  cds = " x "
-  find_tir(gram, temp, rRNA, rbs, cds)
+  RBS = "UUCUAGAGUGCAUAAGGAGUGCUCG"
+  CDS = "AUGUCCAGAUUAGAUAAAAGUAAAGUGAUGGCGAGCUCUGAAGACGUUAUCAAAGAGUUCAUGCGUUUCAAAGUUCGUAUGGAAGGUUCCGUUAACGGUCACGAGUUCGAAAUCGAAGGUGAAGGUGAAGGUCGUCCGUACGAAGGUACCCAGACCGCUAAACUGAAAGUUACCAAAGGUGGUCCGCUGCCGUUCGCUUGGGACAUCCUGUCCCCGCAGUUCCAGUACGGUUCCAAAGCUUACGUUAAACACCCGGCUGACAU"
+  desired_initiation_rate = 3
+  optimized_rbs, optimized_rate = optimize_rbs(desired_initiation_rate, gram_stain, temperature, rRNA, RBS, CDS)
+  print(f"\nOptimized RBS: {optimized_rbs}")
+  print(f"Optimized RBS rate: {optimized_rate}")
 

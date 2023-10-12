@@ -6,8 +6,8 @@ from predict import *
 # for i in organism_choices.keys:
 #     org_choices.append((i, i))
 
-def optimise(rbs_seq, target, temp, gram, cds_seq, rrna):
-    optimized_rbs, optimized_rate = optimize_rbs(float(target), gram, float(temp), rrna, rbs_seq, cds_seq)
+def optimise(rbs_seq, target, temp, gram, cds_seq, rrna, protect):
+    optimized_rbs, optimized_rate = optimize_rbs(float(target), gram, float(temp), rrna, rbs_seq, cds_seq, protect)
     return {"result_seq": str(optimized_rbs), "achieved_rate": str(optimized_rate)}
     # return {"result_seq": "AAAAAA", "achieved_rate": "10"}
 

@@ -1,7 +1,17 @@
-{% extends "base.html" %}
-{% block title %}Landing page{% endblock %}
-
+{% extends "base.html" %} {% block title %}Landing page{% endblock %} 
 {% block content %}
-<a href="/predict">Predictor</a><br>
-<a href="/optimise">Optimiser</a>
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'home.css' %}" type="text/css"/>
+
+<div class="parent-container">
+    <div class="logo-container">
+        <img src="{% static 'igem-logo-transparent.png' %}" class="logo" />
+    </div>
+    <div class="container">
+        <button onclick="location.href='/predict';" class="predict"><b>Predictor</b></button>
+    
+        <button onclick="location.href='/optimise';" class="optimise"><b>Optimiser</b></button>
+    </div>
+</div>
 {% endblock %}

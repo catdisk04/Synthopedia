@@ -211,7 +211,9 @@ def optimize_rbs(desired_initiation_rate, gram_stain, temperature, rRNA, RBS, CD
     best_RBS_sequences = []
     best_RBS_rates = []
 
-    if positions_to_protect != []:
+    if positions_to_protect == "":
+       positions_to_protect = []
+    elif positions_to_protect != []:
       positions_to_protect = [int(i) for i in positions_to_protect.replace(" ","").split(",")]
 
     for generation in range(generations):
@@ -219,10 +221,10 @@ def optimize_rbs(desired_initiation_rate, gram_stain, temperature, rRNA, RBS, CD
         current_rate = find_tir(gram_stain, temperature, rRNA, rbs_sequence, CDS)
         best_RBS_sequences.append(rbs_sequence)
         best_RBS_rates.append(current_rate)
-        print(f"Generation {generation+1}, Current RBS: {rbs_sequence}, Initiation Rate: {current_rate}")
+        # print(f"Generation {generation+1}, Current RBS: {rbs_sequence}, Initiation Rate: {current_rate}")
 
         if abs(current_rate - desired_initiation_rate) < 1e-4: # Choosing the accuracy we require
-            print("Optimization successful!")
+            # print("Optimization successful!")
             break
         # Generate a new mutated RBS sequence
         best_rate = 500 # Setting an arbitrary high best rate
@@ -259,10 +261,10 @@ def optimize_rbs(desired_initiation_rate, gram_stain, temperature, rRNA, RBS, CD
 
         if consecutive_same_best_rate == 4:
             if abs(current_rate - desired_initiation_rate) > 0.01:
-                print("Retrying for a better result")
+                # print("Retrying for a better result")
                 rbs_sequence_1 = RBS
             else:
-                print("Optimization successful!")
+                # print("Optimization successful!")
                 break
 
         rbs_sequence = rbs_sequence_1  # Update the current RBS sequence

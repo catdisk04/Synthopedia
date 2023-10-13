@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block form %}
-<form method="post" action="/optimise/" >
+<form method="post" action="/myapp/optimise/" >
     {% csrf_token %}
     {{form.as_p}}
     <button type="submit" name="save">Submit</button>
